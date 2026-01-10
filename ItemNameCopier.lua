@@ -24,13 +24,21 @@ frame:SetBackdrop({
     tile = true, tileSize = 16, edgeSize = 16,
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
 })
-frame:SetPoint(
-    ItemNameCopierDB.point or "CENTER",
-    UIParent,
-    ItemNameCopierDB.relPoint or "CENTER",
-    ItemNameCopierDB.x or 0,
-    ItemNameCopierDB.y or 180
-)
+
+-- 延迟设置位置，确保存档数据已加载
+local function RestoreFramePosition()
+    frame:SetPoint(
+        ItemNameCopierDB.point or "CENTER",
+        UIParent,
+        ItemNameCopierDB.relPoint or "CENTER",
+        ItemNameCopierDB.x or 0,
+        ItemNameCopierDB.y or 680
+    )
+end
+
+-- 先设置默认位置，稍后更新为存档位置
+frame:SetPoint("CENTER", UIParent, "CENTER", 0, 680)
+
 frame:SetMovable(true)
 frame:EnableMouse(true)
 frame:RegisterForDrag("LeftButton")
@@ -443,6 +451,34 @@ hooksecurefunc("ChatEdit_InsertLink", function(link)
 end)
 
 -- ==================================
+-- 聊天输入框打开时关闭插件
+-- ==================================
+local function HookChatEditBox()
+    for i = 1, NUM_CHAT_WINDOWS do
+        local editBox = _G["ChatFrame" .. i .. "EditBox"]
+        if editBox and not editBox.__ItemNameCopier_Hooked then
+            editBox.__ItemNameCopier_Hooked = true
+            
+            -- 保存原始的 OnEditFocusGained 脚本
+            local origOnFocusGained = editBox:GetScript("OnEditFocusGained")
+            editBox:SetScript("OnEditFocusGained", function(self)
+                ENABLED = false
+                UpdateToggle()
+                if origOnFocusGained then origOnFocusGained(self) end
+            end)
+            
+            -- 保存原始的 OnEditFocusLost 脚本
+            local origOnFocusLost = editBox:GetScript("OnEditFocusLost")
+            editBox:SetScript("OnEditFocusLost", function(self)
+                ENABLED = true
+                UpdateToggle()
+                if origOnFocusLost then origOnFocusLost(self) end
+            end)
+        end
+    end
+end
+
+-- ==================================
 -- AH 打开默认 ON
 -- ==================================
 local evt = CreateFrame("Frame")
@@ -475,4 +511,16 @@ end)
 
 -- 初始化
 UpdateToggle()
-print("|cff00ff00[ItemNameCopier] v3.1 Complete Safe Loaded|r")
+HookChatEditBox()
+
+-- 等待存档数据加载完毕，然后恢复位置
+C_Timer.After(0.1, RestoreFramePosition)
+
+-- 定期检查和hook新的聊天框
+local initFrame = CreateFrame("Frame")
+initFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+initFrame:SetScript("OnEvent", function()
+    HookChatEditBox()
+end)
+
+print("|cff00ff00[ItemNameCopier] v3.2 - 聊天输入框打开时自动OFF|r")
