@@ -178,8 +178,14 @@ editBox:SetScript("OnKeyDown", function(self,key)
     if IsControlKeyDown() and key=="C" then
         frame:SetBackdropColor(0,0.6,0,0.9)
         C_Timer.After(0.15,function() SetBackground(ENABLED) end)
-        if AuctionFrame and AuctionFrame:IsShown() and BrowseName and BrowseName:IsVisible() then
-            BrowseName:SetFocus()
+        if AuctionFrame and AuctionFrame:IsShown() then
+            if BrowseName and not BrowseName:IsVisible() then
+                if AuctionFrameTab1 then AuctionFrameTab1:Click() end
+            end
+            if BrowseName then
+                BrowseName:SetFocus()
+                BrowseName:HighlightText()
+            end
         end
     end
 end)
