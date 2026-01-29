@@ -17,7 +17,7 @@ local ShowItem
 -- 根框体
 -- ==================================
 local frame = CreateFrame("Frame", "ItemNameCopierFrame", UIParent, "BackdropTemplate")
-frame:SetSize(350, 32)
+frame:SetSize(320, 32)
 frame:SetBackdrop({
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -27,6 +27,7 @@ frame:SetBackdrop({
 
 -- 延迟设置位置，确保存档数据已加载
 local function RestoreFramePosition()
+    frame:ClearAllPoints()
     frame:SetPoint(
         ItemNameCopierDB.point or "CENTER",
         UIParent,
